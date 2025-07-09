@@ -104,6 +104,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div className={`p-3 rounded-full ${color}`}>
           {<Icon className="w-6 h-6 text-white" />}
+          <h1>Hello</h1>
         </div>
       </div>
     </div>
