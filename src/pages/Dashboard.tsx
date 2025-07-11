@@ -2,7 +2,13 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../redux/store";
 import { useEffect } from "react";
 import { setMetrics } from "../redux/slices/dashboardSlice";
-import { Package, TrendingUp } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Package,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch();
@@ -95,7 +101,7 @@ const Dashboard: React.FC = () => {
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {trend ?? (
+          {trend && (
             <div className="flex items-center mt-2">
               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
               <span className="text-sm text-green-500">{trend}</span>
@@ -103,22 +109,144 @@ const Dashboard: React.FC = () => {
           )}
         </div>
         <div className={`p-3 rounded-full ${color}`}>
-          {<Icon className="w-6 h-6 text-white" />}
-          <h1>Hello</h1>
+          <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard
-        title="Total Products"
-        value={metrics.totalProducts}
-        icon={Package}
-        color="bg-blue-500"
-        trend="+12% from last month"
-      />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {user?.firstName}</p>
+        </div>
+        <div className="text-sm text-gray-500">
+          Last updated: {new Date().toLocaleString()}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Products"
+          value={metrics.totalProducts}
+          icon={Package}
+          color="bg-blue-500"
+          trend="+12% from last month"
+        />
+        <StatCard
+          title="Low Stock Items"
+          value={metrics.lowStockItems}
+          icon={TrendingDown}
+          color="bg-yellow-500"
+        />
+        <StatCard
+          title="Out of Stock"
+          value={metrics.outOfStockItems}
+          icon={AlertTriangle}
+          color="bg-red-500"
+        />
+        <StatCard
+          title="Total Transactions"
+          value={metrics.totalTransactions}
+          icon={Activity}
+          color="bg-green-500"
+          trend="+8% from last week"
+        />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Transaction */}
+        <div className="bg-white shadow-sm p-6 rounded-xl border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Recent Transaction
+          </h3>
+          <div className="space-y-4">
+            {metrics.recentTransactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
+              >
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      transaction.type === "in"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {transaction.type === "in" ? "+" : "-"}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {transaction.productName}
+                    </p>
+                    <p className="font-medium text-gray-900">
+                      {transaction.user}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-gray-900">
+                    {transaction.quantity}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {transaction.timestamp}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Stock Alert */}
+        <div className="bg-white shadow-sm rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Stock Alert
+          </h3>
+          <div className="space-y-4">
+            {metrics.stockAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className="flex items-center justify-between bg-red-50 rounded-lg p-3 border border-red-200"
+              >
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  <div>
+                    <p className="font-semibold text-red-900">
+                      {alert.productName}
+                    </p>
+                    <p className="text-sm text-red-500">
+                      Location: {alert.location}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-red-900">
+                    {alert.currentStock}/{alert.minStock}
+                  </p>
+                  <p className="text-sm text-red-500">Current/Min</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Category Breakdown */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Category Breakdown
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Object.entries(metrics.categoryBreakdown).map(
+            ([category, count]) => (
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">{count}</p>
+                <p className="text-sm text-gray-600">{category}</p>
+              </div>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 };
